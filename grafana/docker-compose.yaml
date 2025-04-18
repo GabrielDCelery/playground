@@ -33,6 +33,11 @@ services:
       - postgres-grafana:/var/lib/postgresql/data
     networks:
       - grafana-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   grafana:
     container_name: grafana
     image: grafana/grafana:11.6.0
@@ -55,8 +60,10 @@ services:
     networks:
       - grafana-network
     depends_on:
-      - pg_grafana
-      - pg_data
+      pg_grafana:
+        condition: service_healthy
+      pg_data:
+        condition: service_healthy
 volumes:
   # grafana-storage:
   #   driver: local

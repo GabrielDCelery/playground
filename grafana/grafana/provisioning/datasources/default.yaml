@@ -1,0 +1,19 @@
+apiVersion: 1
+datasources:
+  - name: pg_my_data_db
+    type: postgres
+    access: proxy
+    url: pg_data:5432
+    user: postgres
+    secureJsonData:
+      password: postgres
+    jsonData:
+      database: my_data_db
+      sslmode: disable
+      maxOpenConns: 100
+      maxIdleConns: 100
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1400
+      timescaledb: false
+    editable: false
