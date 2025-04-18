@@ -1,23 +1,68 @@
-version: '3.8'
 services:
+  pg_data:
+    container_name: pg_data
+    image: postgres:17.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: my_data_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - grafana-network
+  pg_grafana:
+    container_name: pg_grafana
+    image: postgres:17.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: my_grafana_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-grafana:/var/lib/postgresql/data
+    networks:
+      - grafana-network
   grafana:
-    image: grafana/grafana:latest
     container_name: grafana
+    image: grafana/grafana:11.6.0
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
-      - grafana-storage:/var/lib/grafana
+      # - grafana-storage:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
       - ./grafana/dashboards:/var/lib/grafana/dashboards
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin # Change this in production!
       - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=pg_grafana:5432
+      - GF_DATABASE_NAME=my_grafana_db
+      - GF_DATABASE_USER=postgres
+      - GF_DATABASE_PASSWORD=postgres
     networks:
       - grafana-network
+    depends_on:
+      - pg_grafana
+      - pg_data
 volumes:
-  grafana-storage:
+  # grafana-storage:
+  #   driver: local
+  postgres-data:
+    driver: local
+  postgres-grafana:
     driver: local
 networks:
   grafana-network:
