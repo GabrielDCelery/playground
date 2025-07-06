@@ -1,0 +1,13 @@
+[tools]
+golang = '1.24'
+dagger = '0.18.12'
+
+[tasks.init]
+run = [
+    "touch go.work",
+    "find . -name go.mod -exec dirname {} \\; | xargs -I {} go work use {}",
+    "find . -name go.mod -exec dirname {} \\; | xargs -n1 -I {} sh -c 'cd {} && go get ./...'",
+]
+
+[tasks.build]
+run = "dagger call build-app --src ./app --output ./goserver"
